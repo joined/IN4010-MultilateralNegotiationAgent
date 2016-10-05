@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<multilateralTournamentsConfiguration>
+	<tournaments>
+		<tournament>
+            <deadline>
+                <value>12</value>
+                <type>TIME</type>
+            </deadline>
+			<protocolItem hasMediatorProfile="false" hasMediator="false"
+				description="Each agents makes offer, counter-offer, or accepts"
+				classPath="negotiator.protocol.StackedAlternatingOffersProtocol"
+				protocolName="Stacked Alternating Offers Protocol for Multi-Lateral Negotiation (SAOPMN)" />
+			<partyRepItems>
+				<item protocolClassPath="negotiator.protocol.StackedAlternatingOffersProtocol"
+					description="18. agents.anac.y2015.group2.Group2 " classPath="agents.anac.y2015.group2.Group2"
+					partyName="ANAC2015-18-Group2">
+					<properties />
+				</item>
+				<item protocolClassPath="negotiator.protocol.StackedAlternatingOffersProtocol"
+					description="19. PokerFace" classPath="agents.anac.y2015.pokerface.PokerFace"
+					partyName="ANAC2015-19-PokerFace">
+					<properties />
+				</item>
+				<item protocolClassPath="negotiator.protocol.StackedAlternatingOffersProtocol"
+					description="20. TUDMixedStrategy"
+					classPath="agents.anac.y2015.TUDMixedStrategyAgent.TUDMixedStrategyAgent"
+					partyName="ANAC2015-20-TUDMixedStrategy">
+					<properties />
+				</item>
+			</partyRepItems>
+			<partyProfileItems>
+				<item url="file:etc/templates/partydomain/party1_utility.xml" />
+				<item url="file:etc/templates/partydomain/party2_utility.xml" />
+				<item url="file:etc/templates/partydomain/party3_utility.xml" />
+			</partyProfileItems>
+			<numSessions>1</numSessions>
+			<numberOfAgentsPerSession>3</numberOfAgentsPerSession>
+			<repetitionAllowed>false</repetitionAllowed>
+		</tournament>
+
+		<tournament>
+            <deadline>
+                <value>10</value>
+                <type>ROUND</type>
+            </deadline>
+			<protocolItem hasMediatorProfile="false" hasMediator="false"
+				description="Each agents makes offer, counter-offer, or accepts"
+				classPath="negotiator.protocol.StackedAlternatingOffersProtocol"
+				protocolName="Stacked Alternating Offers Protocol for Multi-Lateral Negotiation (SAOPMN)" />
+			<partyRepItems>
+				<item protocolClassPath="negotiator.protocol.StackedAlternatingOffersProtocol"
+					description="18. agents.anac.y2015.group2.Group2 " classPath="agents.anac.y2015.group2.Group2"
+					partyName="ANAC2015-18-Group2">
+					<properties />
+				</item>
+				<item protocolClassPath="negotiator.protocol.StackedAlternatingOffersProtocol"
+					description="19. PokerFace" classPath="agents.anac.y2015.pokerface.PokerFace"
+					partyName="ANAC2015-19-PokerFace">
+					<properties />
+				</item>
+				<item protocolClassPath="negotiator.protocol.StackedAlternatingOffersProtocol"
+					description="20. TUDMixedStrategy"
+					classPath="agents.anac.y2015.TUDMixedStrategyAgent.TUDMixedStrategyAgent"
+					partyName="ANAC2015-20-TUDMixedStrategy">
+					<properties />
+				</item>
+				<item protocolClassPath="negotiator.protocol.StackedAlternatingOffersProtocol"
+					description="20. TUDMixedStrategy"
+					classPath="agents.anac.y2015.TUDMixedStrategyAgent.TUDMixedStrategyAgent"
+					partyName="ANAC2015-20-TUDMixedStrategy">
+					<properties />
+				</item>
+
+			</partyRepItems>
+			<partyProfileItems>
+				<item url="file:etc/templates/partydomain/party3_utility.xml" />
+				<item url="file:etc/templates/partydomain/party4_utility.xml" />
+				<item url="file:etc/templates/partydomain/party5_utility.xml" />
+				<item url="file:etc/templates/partydomain/party6_utility.xml" />
+			</partyProfileItems>
+			<numSessions>1</numSessions>
+			<numberOfAgentsPerSession>4</numberOfAgentsPerSession>
+			<repetitionAllowed>false</repetitionAllowed>
+		</tournament>
+
+	</tournaments>
+</multilateralTournamentsConfiguration>
