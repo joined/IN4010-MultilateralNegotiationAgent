@@ -46,14 +46,11 @@ public class Group5 extends AbstractNegotiationParty {
 	 */
 	@Override
 	public Action chooseAction(List<Class<? extends Action>> validActions) {
-
-		// with 50% chance, counter offer
-		// if we are the first party, also offer.
-		if (lastReceivedBid == null || !validActions.contains(Accept.class)
-				|| Math.random() > 0.5) {
+		try {
+			return new Offer(getPartyId(), utilitySpace.getMaxUtilityBid());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			return new Offer(getPartyId(), generateRandomBid());
-		} else {
-			return new Accept(getPartyId(), lastReceivedBid);
 		}
 	}
 
