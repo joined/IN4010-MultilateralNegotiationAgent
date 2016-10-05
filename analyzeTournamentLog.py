@@ -8,7 +8,8 @@ inputfile = sys.argv[1]
 winners = defaultdict(int)
 sessions = 0
 with open(inputfile, newline='') as csvfile:
-    next(csvfile)
+    # Skip first two lines
+    _, _ = next(csvfile), next(csvfile)
 
     csvreader = csv.reader(csvfile, delimiter=';')
 
