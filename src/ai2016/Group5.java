@@ -1,5 +1,6 @@
 package ai2016;
 
+import java.util.HashMap;
 import java.util.List;
 
 import negotiator.AgentID;
@@ -8,6 +9,8 @@ import negotiator.Deadline;
 import negotiator.actions.Accept;
 import negotiator.actions.Action;
 import negotiator.actions.Offer;
+import negotiator.actions.DefaultAction;
+
 import negotiator.parties.AbstractNegotiationParty;
 import negotiator.session.TimeLineInfo;
 import negotiator.utility.AbstractUtilitySpace;
@@ -18,6 +21,8 @@ import negotiator.utility.AbstractUtilitySpace;
 public class Group5 extends AbstractNegotiationParty {
 
 	private Bid lastReceivedBid = null;
+	private HashMap<AgentID, Party> agents;
+	int turn;
 
 	@Override
 	public void init(AbstractUtilitySpace utilSpace, Deadline dl,
@@ -32,7 +37,8 @@ public class Group5 extends AbstractNegotiationParty {
 
 		// if you need to initialize some variables, please initialize them
 		// below
-
+		agents = new HashMap<AgentID, Party>();
+		this.turn = 0;
 	}
 
 	/**
@@ -46,10 +52,23 @@ public class Group5 extends AbstractNegotiationParty {
 	 */
 	@Override
 	public Action chooseAction(List<Class<? extends Action>> validActions) {
+		this.turn ++;
+		if (this.getUtility(lastReceivedBid) > 0.85)
+		{
+			return new Accept(getPartyId(), lastReceivedBid);
+		}
+		else if (this.turn > 10)
+		{
+			Bid bid = this.generateBid();
+			if (this.getUtility(bid) > 0.8)
+			{
+				return new Offer(getPartyId(), this.generateBid());
+			}
+		}
+
 		try {
 			return new Offer(getPartyId(), utilitySpace.getMaxUtilityBid());
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			return new Offer(getPartyId(), generateRandomBid());
 		}
 	}
@@ -68,8 +87,47 @@ public class Group5 extends AbstractNegotiationParty {
 	public void receiveMessage(AgentID sender, Action action) {
 		super.receiveMessage(sender, action);
 		if (action instanceof Offer) {
+			Bid b = DefaultAction.getBidFromAction(action);
+			if (agents.containsKey(sender))
+			{
+				agents.get(sender).addBid(b, getUtility(b));
+			}
+			else
+			{
+				try {
+					agents.put(sender, new Party(sender, this.utilitySpace.getMaxUtilityBid()));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 			lastReceivedBid = ((Offer) action).getBid();
 		}
+	}
+
+	private Bid generateBid()
+	{
+
+		double ownUtility = 0;
+		double totalUtility = 0;
+		double overallUtility = 0;
+		Bid randomBid;
+
+		Bid bestBid = this.generateRandomBid();
+		double bestOverallUtility = 0;
+		for (int i=0; i<100; i++)
+		{
+			randomBid = this.generateRandomBid();
+			ownUtility = this.getUtility(randomBid);
+			for (AgentID agent : this.agents.keySet()){
+				totalUtility += this.agents.get(agent).getUtility(randomBid);
+			}
+			overallUtility = 0.3 * totalUtility/this.agents.size() + 0.7 * ownUtility;
+			if (overallUtility > bestOverallUtility)
+			{
+				bestBid = randomBid;
+			}
+		}
+		return bestBid;
 	}
 
 	@Override
