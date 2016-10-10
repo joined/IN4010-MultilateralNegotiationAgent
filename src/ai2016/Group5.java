@@ -62,7 +62,7 @@ public class Group5 extends AbstractNegotiationParty {
 			Bid bid = this.generateBid();
 			if (this.getUtility(bid) > 0.8)
 			{
-				return new Offer(getPartyId(), this.generateBid());
+				return new Offer(getPartyId(), bid);
 			}
 		}
 

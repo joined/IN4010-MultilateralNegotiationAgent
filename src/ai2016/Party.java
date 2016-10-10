@@ -20,6 +20,9 @@ public class Party {
 	int[] issueIds;
 	EvaluatorDiscrete[] issues;
 
+	/*
+	 * Create a new Party object
+	 */
 	public Party(AgentID id, Bid example)
 	{
 		this.id = id;
@@ -39,11 +42,17 @@ public class Party {
 		}
 	}
 
+	/*
+	 * Add a bid to the bid history
+	 */
 	public void addBid(Bid bid,  double utility)
 	{
 		this.bidHistory.add(new BidDetails(bid,utility));
 	}
-
+	
+	/*
+	 * Get the utility of the given bid
+	 */
 	public double getUtility(Bid bid)
 	{
 		double utility = 0.0;
@@ -58,13 +67,18 @@ public class Party {
 		}
 		return utility;
 	}
-	
+	/*
+	 * Set the weights of the issues and the values per issue
+	 */
 	public void setWeights()
 	{
 		this.setWeightsIssues();
 		this.setWeightsIssueValues();
 	}
 
+	/*
+	 * Set the weights for the values of each issues using frequency analysis
+	 */
 	private void setWeightsIssueValues()
 	{
 		for (int i=0; i<this.nrIssues; i++)
@@ -94,6 +108,10 @@ public class Party {
 			}
 		}
 	}
+	
+	/*
+	 * Set the weights for each issue using frequency analysis
+	 */
 
 	private void setWeightsIssues()
 	{
@@ -106,6 +124,10 @@ public class Party {
 			this.issues[i].setWeight(weights[i] + (this.bidHistory.size() - changesIssues[i] -1)/10);
 		}
 	}
+	
+	/*
+	 * Return an array which represents the frequency of change of each issue
+	 */
 
 	private int[] getChangesIssues()
 	{
