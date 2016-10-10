@@ -1,4 +1,4 @@
-package ai2016;
+package ai2016.group5;
 
 import negotiator.Bid;
 import negotiator.BidHistory;

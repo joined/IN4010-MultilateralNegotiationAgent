@@ -1,4 +1,4 @@
-package ai2016;
+package ai2016.group5;
 
 import java.util.HashMap;
 import java.util.List;
@@ -135,7 +135,7 @@ public class Group5 extends AbstractNegotiationParty {
 
 	@Override
 	public String getDescription() {
-		return "example party group N";
+		return "Party Group 5";
 	}
 
 }
