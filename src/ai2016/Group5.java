@@ -57,7 +57,7 @@ public class Group5 extends AbstractNegotiationParty {
 		{
 			return new Accept(getPartyId(), lastReceivedBid);
 		}
-		else if (this.turn > 10)
+		else
 		{
 			Bid bid = this.generateBid();
 			if (this.getUtility(bid) > 0.8)
@@ -107,9 +107,9 @@ public class Group5 extends AbstractNegotiationParty {
 	private Bid generateBid()
 	{
 
-		double ownUtility = 0;
-		double totalUtility = 0;
-		double overallUtility = 0;
+		double ownUtility = 0.0;
+		double totalUtility = 0.0;
+		double overallUtility = 0.0;
 		Bid randomBid;
 
 		Bid bestBid = this.generateRandomBid();
@@ -118,9 +118,12 @@ public class Group5 extends AbstractNegotiationParty {
 		{
 			randomBid = this.generateRandomBid();
 			ownUtility = this.getUtility(randomBid);
+			totalUtility = 0;
 			for (AgentID agent : this.agents.keySet()){
 				totalUtility += this.agents.get(agent).getUtility(randomBid);
 			}
+			//System.out.println(totalUtility);
+
 			overallUtility = 0.3 * totalUtility/this.agents.size() + 0.7 * ownUtility;
 			if (overallUtility > bestOverallUtility)
 			{

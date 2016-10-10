@@ -48,6 +48,7 @@ public class Party {
 	public void addBid(Bid bid,  double utility)
 	{
 		this.bidHistory.add(new BidDetails(bid,utility));
+		this.setWeights();
 	}
 	
 	/*
@@ -63,7 +64,8 @@ public class Party {
 			ValueDiscrete value = (ValueDiscrete)bidValues.get(this.issueIds[i]);
 			if (((EvaluatorDiscrete)this.issues[i]).getValues().contains(value))
 			{
-				utility = utility + this.issues[i].getDoubleValue(value).doubleValue() * weight; }
+				utility = utility + this.issues[i].getDoubleValue(value).doubleValue() * weight; 
+			}
 		}
 		return utility;
 	}
@@ -89,19 +91,23 @@ public class Party {
 				ValueDiscrete value = (ValueDiscrete)(this.bidHistory.getHistory().get(j).getBid().getValue(this.issueIds[i]));
 				if (values.containsKey(value))
 				{
-					if (j==0) values.put(value, values.get(value) + 5);
-					else values.put(value, values.get(value) + 1);
+					values.put(value, values.get(value) + 1); 
 				}
 				else
 				{
-					if (j==0) values.put(value, 1.0);
-					else values.put(value, 1.0);
+					values.put(value, 1.0);
 				}
+			}
+			
+			double max = 0.0;
+			for (ValueDiscrete value : values.keySet())
+			{
+				if (values.get(value) > max) max = values.get(value);
 			}
 			for (ValueDiscrete value : values.keySet())
 			{
 				try {
-					this.issues[i].setEvaluationDouble(value, values.get(value));
+					this.issues[i].setEvaluationDouble(value, values.get(value)/max);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -117,11 +123,18 @@ public class Party {
 	{
 		int[] changesIssues = getChangesIssues();
 		double[] weights = new double[this.nrIssues];
-		Arrays.fill(weights, 1/this.nrIssues);
+		Arrays.fill(weights, 1.0/this.nrIssues);
+		double total = 0.0;
 
 		for (int i=0; i<this.nrIssues; i++)
 		{
-			this.issues[i].setWeight(weights[i] + (this.bidHistory.size() - changesIssues[i] -1)/10);
+			double w = weights[i] + (this.bidHistory.size() - changesIssues[i] -1)/10.0;
+			this.issues[i].setWeight(w);
+			total += w;
+		}
+		for (int i=0; i<this.nrIssues; i++)
+		{
+			this.issues[i].setWeight(this.issues[i].getWeight()/total);
 		}
 	}
 	
@@ -140,9 +153,9 @@ public class Party {
 			{	
 				if (old != null)
 				{
-					if (old.equals(this.bidHistory.getHistory().get(j).getBid().getValue(this.issueIds[i])))
+					if (!old.equals(this.bidHistory.getHistory().get(j).getBid().getValue(this.issueIds[i])))
 					{
-						count ++;
+						count += 1;
 					}
 				}
 				old = this.bidHistory.getHistory().get(j).getBid().getValue(this.issueIds[i]);
@@ -150,6 +163,7 @@ public class Party {
 			changes[i] = count;
 		}
 		return changes;
+		
 	}
 
 }
