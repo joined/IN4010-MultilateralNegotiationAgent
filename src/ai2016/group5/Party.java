@@ -14,11 +14,11 @@ import java.util.HashMap;
 
 
 public class Party {
-	AgentID id;
-	BidHistory bidHistory;
-	Integer nrIssues;
-	int[] issueIds;
-	EvaluatorDiscrete[] issues;
+	private AgentID id;
+	public BidHistory bidHistory;
+	private Integer nrIssues;
+	private int[] issueIds;
+	private EvaluatorDiscrete[] issues;
 
 	/*
 	 * Create a new Party object
@@ -138,18 +138,23 @@ public class Party {
 		}
 	}
 	
+	
+	private int[] getChangesIssues()
+	{
+		return getChangesIssues(this.bidHistory.size());
+	}
 	/*
 	 * Return an array which represents the frequency of change of each issue
 	 */
 
-	private int[] getChangesIssues()
+	private int[] getChangesIssues(int rounds)
 	{
 		int[] changes = new int[this.nrIssues];
 		for (int i=0; i<this.nrIssues; i++)
 		{
 			Value old = null;
 			int count = 0;
-			for (int j=0; j<this.bidHistory.size(); j++)
+			for (int j=this.bidHistory.size()-1; j>this.bidHistory.size()-rounds-1; j--)
 			{	
 				if (old != null)
 				{
@@ -163,6 +168,37 @@ public class Party {
 			changes[i] = count;
 		}
 		return changes;
+		
+	}
+	
+	// Return how uniform the change in issues are. 1 = highest change is equal to smallest change, 0 = one issue does not change
+	public Double uniformChangeInIssues(int rounds)
+	{
+		if (this.bidHistory.size() < rounds) return null;
+		
+		int[] changes = this.getChangesIssues(rounds);
+		int max = 0;
+		int min = this.bidHistory.size();
+		for(int change : changes){
+			if (change > max) max = change;
+			if (change < min) min = change;
+		}
+		if (max == 0) return 0.0;		
+		return min/(double)max;
+	}
+	
+	// Return how hardHeaded the agent is. 0 = bids do not change in the last $rounds, 1 = bid change every time in the last $rounds
+	public Double hardHeaded(int rounds)
+	{
+		if (this.bidHistory.size() < rounds) return null;
+		
+		int[] changes = this.getChangesIssues(rounds);
+		int sum = 0;
+		for (int change: changes){
+			sum += change;
+		}
+		return (sum/(double)this.nrIssues)/(double)this.bidHistory.size();
+		
 		
 	}
 
