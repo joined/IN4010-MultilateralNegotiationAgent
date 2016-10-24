@@ -28,9 +28,7 @@ public class Group5 extends AbstractNegotiationParty {
 
 	@Override
 	public void init(AbstractUtilitySpace utilSpace, Deadline dl, TimeLineInfo tl, long randomSeed, AgentID agentId) {
-
 		super.init(utilSpace, dl, tl, randomSeed, agentId);
-
 		this.opponentsMap = new HashMap<AgentID, Opponent>();
 	}
 
