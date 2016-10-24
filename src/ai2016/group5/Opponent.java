@@ -63,13 +63,15 @@ public class Opponent {
 		double utility = 0.0;
 
 		HashMap<Integer, Value> bidValues = bid.getValues();
+		// Iterate over the issues
 		for (int i = 0; i < this.nrIssues; i++) {
+			// Get weight of current issue
 			double weight = this.issues[i].getWeight();
 
 			ValueDiscrete value = (ValueDiscrete) bidValues.get(this.issueIds[i]);
 
 			if (((EvaluatorDiscrete) this.issues[i]).getValues().contains(value)) {
-				utility = utility + this.issues[i].getDoubleValue(value).doubleValue() * weight;
+				utility += this.issues[i].getDoubleValue(value).doubleValue() * weight;
 			}
 		}
 		return utility;
@@ -128,16 +130,19 @@ public class Opponent {
 	private void setWeightsIssues() {
 		int[] changesIssues = getChangesIssues();
 		double[] weights = new double[this.nrIssues];
-		Arrays.fill(weights, 1.0 / this.nrIssues);
-		double total = 0.0;
+		double totalWeight = 0.0;
 
+		// Iterate over all the issues
 		for (int i = 0; i < this.nrIssues; i++) {
-			double w = weights[i] + (this.bidHistory.size() - changesIssues[i] - 1) / 10.0;
-			this.issues[i].setWeight(w);
-			total += w;
+			weights[i] = 1.0 / this.nrIssues + (this.bidHistory.size() - changesIssues[i] - 1) / 10.0;
+
+			// Keep the total weight to normalize
+			totalWeight += weights[i];
 		}
+
+		// Normalize the weights of the issues
 		for (int i = 0; i < this.nrIssues; i++) {
-			this.issues[i].setWeight(this.issues[i].getWeight() / total);
+			this.issues[i].setWeight(weights[i] / totalWeight);
 		}
 	}
 
