@@ -33,11 +33,12 @@ public class Group5 extends AbstractNegotiationParty {
 	private double TIME_OFFERING_MAX_UTILITY_BID = 0.20D;
 	// Utility above which all of our offers will be
 	private double RESERVATION_VALUE = 0.4D;
-	
+	// The max amount of the best bids to save 
 	private int maxAmountSavedBits = 100;
-		
+	// This is used to compute the closed bid for a given utility
 	private SortedOutcomeSpace SOS;
 	private Random randomGenerator;
+	// The best bids found while searching are saved here
 	private List<BidDetails> bestGeneratedBids = new ArrayList<BidDetails>();;
 	
 	int turn;
@@ -45,6 +46,7 @@ public class Group5 extends AbstractNegotiationParty {
 
 	@Override
 	public void init(AbstractUtilitySpace utilSpace, Deadline dl, TimeLineInfo tl, long randomSeed, AgentID agentId) {
+		// The class variables are initialized
 		super.init(utilSpace, dl, tl, randomSeed, agentId);
 		this.opponentsMap = new HashMap<AgentID, Opponent>();
 		this.SOS = new SortedOutcomeSpace(this.utilitySpace);
@@ -94,19 +96,23 @@ public class Group5 extends AbstractNegotiationParty {
 		System.out.format("I'm going to offer the bid that I generated, which has utility [%f]%n", getUtility(proposedBid));
 		return new Offer(getPartyId(), proposedBid);
 	}
-	
+	/**
+	 * Compute the minimum utility that is acceptable at the current moment
+	 * @return double indicating the min utility
+	 */
 	private double getMinAcceptableUtility()
 	{
 		double timeLeft = 1 - getTimeLine().getTime();
 		// At the beginning of the negotiation the minimum utility will be 0.9,
-		// when 90% of the time has elapsed it will be ~0.83
-		// when 99% of the time has elapsed it will be ~0.77
-		// and then it will drop to 0 very rapidly (it will be exactly 0 when no time is left)
 		double minUtility = Math.log10(timeLeft) / this.getConcedingFactor() + 0.9D;
 		
 		return Math.max(minUtility, this.RESERVATION_VALUE);
 	}
 	
+	/**
+	 * Compute the conceding factor. If one of the opponents are hard headed concede faster
+	 * @return double indicating the conceding factor
+	 */
 	private double getConcedingFactor()
 	{		
 		Double max = 0.0;
@@ -134,7 +140,7 @@ public class Group5 extends AbstractNegotiationParty {
 		// Check if the utility of the latest received offer is higher than the utility
 		// of the bid we are going to offer
 		boolean aNext = getUtility(this.lastReceivedBid) >= getUtility(proposedBid);
-
+		// Get the minimum acceptable utility
 		double minUtility = this.getMinAcceptableUtility();
 		
 		System.out.format("Min utility: [%f]%n", minUtility);
@@ -194,11 +200,11 @@ public class Group5 extends AbstractNegotiationParty {
 		do {
 			// Generate random double in range 0:1
 		    double randomNumber = this.randomGenerator.nextDouble();
-		    // Map randomNumber in range this.RESERVATION_VALUE : 1
+		    // Map randomNumber in range (minimum acceptable utility : 1)
 		    double utility = minimum_acceptable_utility + randomNumber * (1.0 - minimum_acceptable_utility);
 		    // Get a bid closest to $utility
 		    bid = SOS.getBidNearUtility(utility).getBid();
-		} while (getUtility(bid) < minimum_acceptable_utility);
+		} while (getUtility(bid) <= minimum_acceptable_utility);
 		return bid;
 	}
 	/**
@@ -214,18 +220,17 @@ public class Group5 extends AbstractNegotiationParty {
 		Bid bestBid = generateAcceptableRandomBid(acceptableUtility);
 		double bestAverageUtility = -1;
 		
-		// Every 20 rounds, recompute the utilities of the opponents
-		// This is done to best approximate them, by taking new proposed bid into account,
+		// Every 20 rounds, recompute the utilities of the best saved bids of the opponents
+		// This is done to better approximate them, by taking new proposed bid into account
 		// in the opponent modeling
 		if (this.bestGeneratedBids.size() >= 100 && this.turn % 20 == 0){
 			this.recomputeUtilities();
-			System.out.println("Turn:");
-			System.out.println(this.turn);
 		}
 
-		// Generate 100 times random (valid) bids and see which one has a better overall utility
+		// Generate 100 times random (valid) bids and see which one has a better average utility
+		// for the opponents
 		for (int i = 0; i < 100; i++) {
-			// Generate a valid random bid
+			// Generate a valid random bid, which is above our minimum acceptable utility
 			randomBid = generateAcceptableRandomBid(acceptableUtility);
 
 			averageOpponentsUtility = this.getOpponentsAverageUtility(randomBid);
@@ -246,7 +251,7 @@ public class Group5 extends AbstractNegotiationParty {
 		else {
 			// Get the worst bid saved in $bestGeneratedBits
 			double worstBidsUtility = this.bestGeneratedBids.get(this.maxAmountSavedBits -1).getMyUndiscountedUtil();
-			// If $bestBid is than this save it and remove the worst bid
+			// If $bestBid is better than save it and remove the worst bid
 			if (bestAverageUtility > worstBidsUtility){
 				this.bestGeneratedBids.remove(0);
 				this.bestGeneratedBids.add(new BidDetails(bestBid, bestAverageUtility));
@@ -256,15 +261,11 @@ public class Group5 extends AbstractNegotiationParty {
 		
 		// When enough bids are saved, offer one of the best bids
 		if (this.bestGeneratedBids.size() >= this.maxAmountSavedBits){
-			// Get index of one of the best 5 saved bids
-			// this.bestGeneratdBids is sorted in ascending order with the utility as key
+			// Get index of one of the 5 best saved bids
+			// this.bestGeneratdBids is sorted in ascending order with the utility of the opponents as key
 			int index =  this.maxAmountSavedBits - randomGenerator.nextInt(5) - 1;
-			bestBid = this.bestGeneratedBids.get(index).getBid();
-			System.out.println("BestBid:");
-			System.out.println(this.getUtility(bestBid));
-			System.out.println(this.bestGeneratedBids.get(index).getMyUndiscountedUtil());			
+			bestBid = this.bestGeneratedBids.get(index).getBid();		
 		}
-		
 		return bestBid;
 	}
 	
