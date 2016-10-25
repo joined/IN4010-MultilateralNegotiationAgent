@@ -4,10 +4,10 @@ import java.util.List;
 import negotiator.bidding.BidDetails;
 
 public class StrategyModel {
-	private Party[] allParty;
-	private Party own;
+	private Opponent[] allParty;
+	private Opponent own;
 	
-	public StrategyModel(Party[] parties, Party own)
+	public StrategyModel(Opponent[] parties, Opponent own)
 	{
 		this.allParty = parties;
 		this.own = own;
@@ -18,7 +18,7 @@ public class StrategyModel {
 	{
 		Double[][] changes = new Double[this.allParty.length][];
 		int i=0;
-		for (Party p: this.allParty){
+		for (Opponent p: this.allParty){
 			changes[i] = this.getChangesInUtility(p,rounds);
 			if (changes[i] == null){
 				return null;
@@ -39,7 +39,7 @@ public class StrategyModel {
 	}
 	
 	// Return an array which give the change in utility in the last consecutive $rounds
-	public Double[] getChangesInUtility(Party model, int rounds)
+	public Double[] getChangesInUtility(Opponent model, int rounds)
 	{
 		List<BidDetails> bids =  model.bidHistory.getHistory();
 		
