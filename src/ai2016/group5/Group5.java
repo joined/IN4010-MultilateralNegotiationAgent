@@ -1,9 +1,11 @@
 package ai2016.group5;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 import negotiator.AgentID;
 import negotiator.Bid;
@@ -11,9 +13,8 @@ import negotiator.Deadline;
 import negotiator.actions.Accept;
 import negotiator.actions.Action;
 import negotiator.actions.Offer;
-
+import negotiator.bidding.BidDetails;
 import negotiator.boaframework.SortedOutcomeSpace;
-import negotiator.actions.DefaultAction;
 
 import negotiator.parties.AbstractNegotiationParty;
 import negotiator.session.TimeLineInfo;
@@ -32,9 +33,12 @@ public class Group5 extends AbstractNegotiationParty {
 	private double TIME_OFFERING_MAX_UTILITY_BID = 0.20D;
 	// Utility above which all of our offers will be
 	private double RESERVATION_VALUE = 0.4D;
+	
+	private int maxAmountSavedBits = 100;
 		
 	private SortedOutcomeSpace SOS;
 	private Random randomGenerator;
+	private List<BidDetails> bestGeneratedBids = new ArrayList<BidDetails>();;
 	
 	int turn;
 
@@ -59,7 +63,7 @@ public class Group5 extends AbstractNegotiationParty {
 	@Override
 	public Action chooseAction(List<Class<? extends Action>> validActions) {
 		this.turn ++;
-
+		
 		// For the first part of the negotiation, just keep offering the maximum
 		// utility bid
 		if (isMaxUtilityOfferTime()) {
@@ -203,32 +207,102 @@ public class Group5 extends AbstractNegotiationParty {
 	 * @return the generated bid, which has always a utility higher than our reservation value
 	 */
 	private Bid generateBid() {
-		double opponentsTotalUtility;
 		double averageOpponentsUtility;
 		Bid randomBid;
 		
 		double acceptableUtility = this.getMinAcceptableUtility();
 		Bid bestBid = generateAcceptableRandomBid(acceptableUtility);
-		double bestOverallUtility = 0;
+		double bestAverageUtility = -1;
+		
+		// Every 20 rounds, recompute the utilities of the opponents
+		// This is done to best approximate them, by taking new proposed bid into account,
+		// in the opponent modeling
+		if (this.bestGeneratedBids.size() >= 100 && this.turn % 20 == 0){
+			this.recomputeUtilities();
+			System.out.println("Turn:");
+			System.out.println(this.turn);
+		}
 
 		// Generate 100 times random (valid) bids and see which one has a better overall utility
 		for (int i = 0; i < 100; i++) {
 			// Generate a valid random bid
 			randomBid = generateAcceptableRandomBid(acceptableUtility);
 
-			opponentsTotalUtility = 0;
-			for (AgentID agent : this.opponentsMap.keySet()) {
-				opponentsTotalUtility += this.opponentsMap.get(agent).getUtility(randomBid);
-			}
-
-			// Get the average utility for the opponents
-			averageOpponentsUtility = opponentsTotalUtility / this.opponentsMap.size();
-
-			if (averageOpponentsUtility > bestOverallUtility) {
+			averageOpponentsUtility = this.getOpponentsAverageUtility(randomBid);
+			// Only save the best best bid found
+			if (averageOpponentsUtility > bestAverageUtility) {
 				bestBid = randomBid;
+				bestAverageUtility = averageOpponentsUtility;
 			}
 		}
+		// Save the best bid if the bestGenenratedBits list is not full
+		if (this.bestGeneratedBids.size() < maxAmountSavedBits){
+			this.bestGeneratedBids.add(new BidDetails(bestBid, bestAverageUtility));
+			// If the list gets full sort it
+			if (this.bestGeneratedBids.size() == this.maxAmountSavedBits){
+				this.sortBestBids();
+			}
+		}
+		else {
+			// Get the worst bid saved in $bestGeneratedBits
+			double worstBidsUtility = this.bestGeneratedBids.get(this.maxAmountSavedBits -1).getMyUndiscountedUtil();
+			// If $bestBid is than this save it and remove the worst bid
+			if (bestAverageUtility > worstBidsUtility){
+				this.bestGeneratedBids.remove(0);
+				this.bestGeneratedBids.add(new BidDetails(bestBid, bestAverageUtility));
+				this.sortBestBids();
+			}
+		}
+		
+		// When enough bids are saved, offer one of the best bids
+		if (this.bestGeneratedBids.size() >= this.maxAmountSavedBits){
+			// Get index of one of the best 5 saved bids
+			// this.bestGeneratdBids is sorted in ascending order with the utility as key
+			int index =  this.maxAmountSavedBits - randomGenerator.nextInt(5) - 1;
+			bestBid = this.bestGeneratedBids.get(index).getBid();
+			System.out.println("BestBid:");
+			System.out.println(this.getUtility(bestBid));
+			System.out.println(this.bestGeneratedBids.get(index).getMyUndiscountedUtil());			
+		}
+		
 		return bestBid;
+	}
+	
+	/**
+	 * Sort this.bestGeneratedBids by its utilities
+	 */
+	private void sortBestBids(){
+		Collections.sort(this.bestGeneratedBids, new Comparator<BidDetails>() {
+		    @Override
+		    public int compare(BidDetails bid1, BidDetails bid2) {
+		        return (int)((bid1.getMyUndiscountedUtil() - bid2.getMyUndiscountedUtil())*1000);
+		    }
+		});
+	}
+	
+	/**
+	 * Recompute the utilities of this.bestGeneratedBids.
+	 */
+	private void recomputeUtilities()
+	{
+		for (BidDetails b: this.bestGeneratedBids){
+			b.setMyUndiscountedUtil(this.getOpponentsAverageUtility(b.getBid()));
+		}
+	}
+	/**
+	 * Get the average utility of the opponents for the given bid, use frequency analysis of the opponents to 
+	 * approximate their utility
+	 * @param bid
+	 * @return average utility of the opponents
+	 */
+	private double getOpponentsAverageUtility(Bid bid)
+	{
+		double opponentsTotalUtility = 0;
+		for (AgentID agent : this.opponentsMap.keySet()) {
+			opponentsTotalUtility += this.opponentsMap.get(agent).getUtility(bid);
+		}
+		// Get the average utility for the opponents
+		return opponentsTotalUtility / this.opponentsMap.size();
 	}
 
 	/**

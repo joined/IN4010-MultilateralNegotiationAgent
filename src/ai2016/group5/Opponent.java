@@ -218,10 +218,6 @@ public class Opponent {
 		for (int change: changes){
 			sum += change;
 		}
-		System.out.println("HardHeaded Factor");
-		System.out.println(1 - (sum/(double)this.nrIssues)/(double)rounds);
 		return 1 - (sum/(double)this.nrIssues)/(double)rounds;
-		
-		
 	}
 }
