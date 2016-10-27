@@ -213,14 +213,14 @@ public class Group5 extends AbstractNegotiationParty {
 	 * @return the generated bid, which has always a utility higher than our reservation value
 	 */
 	private Bid generateBid() {
-		double averageOpponentsUtility;
+		double nashProduct;
 		Bid randomBid;
 		
 		double acceptableUtility = this.getMinAcceptableUtility();
 		Bid bestBid = generateAcceptableRandomBid(acceptableUtility);
-		double bestAverageUtility = -1;
+		double bestNashProduct = -1;
 		
-		// Every 20 rounds, recompute the utilities of the best saved bids of the opponents
+		// Every 20 rounds, recompute the Nash product of the best saved bids of the opponents
 		// This is done to better approximate them, by taking new proposed bid into account
 		// in the opponent modeling
 		if (this.bestGeneratedBids.size() >= 100 && this.turn % 20 == 0){
@@ -233,16 +233,16 @@ public class Group5 extends AbstractNegotiationParty {
 			// Generate a valid random bid, which is above our minimum acceptable utility
 			randomBid = generateAcceptableRandomBid(acceptableUtility);
 
-			averageOpponentsUtility = this.getOpponentsAverageUtility(randomBid);
+			nashProduct = this.getNashProduct(randomBid);
 			// Only save the best best bid found
-			if (averageOpponentsUtility > bestAverageUtility) {
+			if (nashProduct > bestNashProduct) {
 				bestBid = randomBid;
-				bestAverageUtility = averageOpponentsUtility;
+				bestNashProduct = nashProduct;
 			}
 		}
 		// Save the best bid if the bestGenenratedBits list is not full
 		if (this.bestGeneratedBids.size() < maxAmountSavedBits){
-			this.bestGeneratedBids.add(new BidDetails(bestBid, bestAverageUtility));
+			this.bestGeneratedBids.add(new BidDetails(bestBid, bestNashProduct));
 			// If the list gets full sort it
 			if (this.bestGeneratedBids.size() == this.maxAmountSavedBits){
 				this.sortBestBids();
@@ -252,9 +252,9 @@ public class Group5 extends AbstractNegotiationParty {
 			// Get the worst bid saved in $bestGeneratedBits
 			double worstBidsUtility = this.bestGeneratedBids.get(this.maxAmountSavedBits -1).getMyUndiscountedUtil();
 			// If $bestBid is better than save it and remove the worst bid
-			if (bestAverageUtility > worstBidsUtility){
+			if (bestNashProduct > worstBidsUtility){
 				this.bestGeneratedBids.remove(0);
-				this.bestGeneratedBids.add(new BidDetails(bestBid, bestAverageUtility));
+				this.bestGeneratedBids.add(new BidDetails(bestBid, bestNashProduct));
 				this.sortBestBids();
 			}
 		}
@@ -282,14 +282,25 @@ public class Group5 extends AbstractNegotiationParty {
 	}
 	
 	/**
-	 * Recompute the utilities of this.bestGeneratedBids.
+	 * Recompute the nash products of this.bestGeneratedBids.
 	 */
 	private void recomputeUtilities()
 	{
 		for (BidDetails b: this.bestGeneratedBids){
-			b.setMyUndiscountedUtil(this.getOpponentsAverageUtility(b.getBid()));
+			b.setMyUndiscountedUtil(this.getNashProduct(b.getBid()));
 		}
 	}
+	
+	private double getNashProduct(Bid bid)
+	{
+		double nash = this.getUtility(bid);
+		for (AgentID agent : this.opponentsMap.keySet()) {
+			nash *= this.opponentsMap.get(agent).getUtility(bid);
+		}
+		return nash;
+	}
+	
+	
 	/**
 	 * Get the average utility of the opponents for the given bid, use frequency analysis of the opponents to 
 	 * approximate their utility
