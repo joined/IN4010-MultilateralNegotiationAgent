@@ -39,7 +39,7 @@ public class Group5 extends AbstractNegotiationParty {
 	private SortedOutcomeSpace SOS;
 	private Random randomGenerator;
 	// The best bids found while searching are saved here
-	private List<BidDetails> bestGeneratedBids = new ArrayList<BidDetails>();;
+	private List<BidDetails> bestGeneratedBids = new ArrayList<BidDetails>();
 	
 	int turn;
 
@@ -124,12 +124,18 @@ public class Group5 extends AbstractNegotiationParty {
 				max = current;
 			}
 		}
+		
+		if (this.timeline.getTime() < 0.96D){
+			return 13;
+		}
 		// Check whether at least one agent is hard headed
 		// If so we should concede faster
-		if (max > 0.1){
+		if (max > 0.6){
 			return 7.0;
 		}
-		return 10.0;
+		else{
+			return 10.0;
+		}
 	}
 	/**
 	 * Determines whether we should accept the latest opponent's bid
@@ -276,7 +282,9 @@ public class Group5 extends AbstractNegotiationParty {
 		Collections.sort(this.bestGeneratedBids, new Comparator<BidDetails>() {
 		    @Override
 		    public int compare(BidDetails bid1, BidDetails bid2) {
-		        return (int)((bid1.getMyUndiscountedUtil() - bid2.getMyUndiscountedUtil())*1000);
+		    	if (bid1.getMyUndiscountedUtil() < bid2.getMyUndiscountedUtil()) return -1;
+		    	else if (bid1.getMyUndiscountedUtil() == bid2.getMyUndiscountedUtil()) return 0;
+		    	else return 1;
 		    }
 		});
 	}
@@ -300,22 +308,6 @@ public class Group5 extends AbstractNegotiationParty {
 		return nash;
 	}
 	
-	
-	/**
-	 * Get the average utility of the opponents for the given bid, use frequency analysis of the opponents to 
-	 * approximate their utility
-	 * @param bid
-	 * @return average utility of the opponents
-	 */
-	private double getOpponentsAverageUtility(Bid bid)
-	{
-		double opponentsTotalUtility = 0;
-		for (AgentID agent : this.opponentsMap.keySet()) {
-			opponentsTotalUtility += this.opponentsMap.get(agent).getUtility(bid);
-		}
-		// Get the average utility for the opponents
-		return opponentsTotalUtility / this.opponentsMap.size();
-	}
 
 	/**
 	 * Description of the agent
