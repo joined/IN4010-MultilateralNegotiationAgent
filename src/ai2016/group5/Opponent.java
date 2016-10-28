@@ -185,26 +185,6 @@ public class Opponent {
 	}
 	
 	/**
-	 * Return how uniform the change in issues are. 1: highest change is equal to smallest change, 0: one issue does not change
-	 * @param only consider the last $rounds rounds
-	 * @return range 0-1
-	 */
-	public Double uniformChangeInIssues(int rounds)
-	{
-		if (this.bidHistory.size() < rounds) return null;
-		
-		int[] changes = this.getChangesIssues(rounds);
-		int max = 0;
-		int min = this.bidHistory.size();
-		for(int change : changes){
-			if (change > max) max = change;
-			if (change < min) min = change;
-		}
-		if (max == 0) return 0.0;		
-		return min/(double)max;
-	}
-	
-	/**
 	 * Return how hardHeaded the agent is. 1 = bids do not change in the last $rounds, 0 = bid change every time in the last $rounds
 	 * @param only consider the last $rounds rounds
 	 * @return range 0-1
